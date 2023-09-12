@@ -1,0 +1,45 @@
+
+StableDiffusionが動くことの確認用です
+
+◆実行方法
+
+①「ランタイムの設定」から設定をCPU→GPUに変更してください。
+
+②以下の「----------------------------------------------」で区切られた３つの部分を
+  セルに貼り付けてそれぞれ順番に実行します。
+
+  ３つ目のセルの画像生成は実行するたびに内容が変わるので
+  何度試してみても良いです
+  プロンプトや解像度も変えられます。
+
+
+----------------------------------------------
+
+# ライブラリをインストールします Runtime再起動を促すメッセージが出ますが無視して良いです
+!pip install diffusers transformers accelerate omegaconf pytorch_lightning
+
+----------------------------------------------
+
+import torch
+from diffusers import AutoPipelineForText2Image
+
+# モデルのパスを指定
+model_path = "runwayml/stable-diffusion-v1-5"
+
+# Pipelineの作成
+pipe_t2i = AutoPipelineForText2Image.from_pretrained(
+    model_path, torch_dtype=torch.float16
+).to("cuda")
+
+----------------------------------------------
+
+
+# 画像の生成
+prompt = "deep space, no planets, nebula"
+image = pipe_t2i(prompt=prompt, height=512, width=768).images[0]
+
+# 画像の表示
+display(image)
+
+----------------------------------------------
+

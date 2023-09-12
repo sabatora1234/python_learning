@@ -1,0 +1,50 @@
+
+ディープラーニングでの超解像処理SwinIRで画像を高精細化します
+
+◆事前準備
+
+①Google Driveのルートの
+  imagesフォルダに
+  高精細化したい画像をアップロードします。
+  (imagesフォルダが無い場合は作成してください)
+
+②Google Colabで「ランタイムの設定」から設定をCPU→GPUに変更してください。
+  
+③Google ColabでGoogle Driveのフォルダをマウントします。
+  以下をセルに貼り付けて実行します。
+
+from google.colab import drive
+drive.mount('/content/drive')
+
+
+◆実行方法
+
+以下の「----------------------------------------------」で区切られた３つの部分を
+  セルに貼り付けてそれぞれ順番に実行します。
+
+
+実行後にSwinIRフォルダのresultフォルダに
+高精細化された画像が出力されます。
+
+
+----------------------------------------------
+
+!git clone https://github.com/JingyunLiang/SwinIR.git
+
+!pip install opencv-python tqdm timm ipython
+
+----------------------------------------------
+
+%cd SwinIR
+
+%mkdir picture
+
+# Google Driveのimagesフォルダの中身をpictureにコピーします
+!cp /content/drive/MyDrive/images/*.* ./picture
+
+----------------------------------------------
+
+!python main_test_swinir.py --task real_sr --scale 4 --large_model --model_path model_zoo/swinir/003_realSR_BSRGAN_DFOWMFC_s64w8_SwinIR-L_x4_GAN.pth --folder_lq /content/SwinIR/picture 
+
+----------------------------------------------
+

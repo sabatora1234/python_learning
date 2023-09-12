@@ -1,0 +1,84 @@
+
+StableDiffusionが動くことの確認用です
+(拡散モデル指定の場合)
+
+----------------------------------------------
+
+◆事前準備
+
+
+①以下のサイトでicbinpICantBelieveIts_seco.safetensorsモデルをダウンロードします。
+  (1.99GBあるので時間がかかります)
+  https://civitai.com/models/28059
+
+②Google Driveにダウンロードしたモデルをアップロードします。
+  (とりあえずはGoogle Driveのルートに)
+
+③Google Colabで「ランタイムの設定」から設定をCPU→GPUに変更してください。
+
+④Google ColabでGoogle Driveのフォルダをマウントします。
+  以下をセルに貼り付けて実行します。
+
+from google.colab import drive
+drive.mount('/content/drive')
+
+  モデルは別のものを使ってもよいです。
+  変える場合は↓の57行目のモデル名(icbinpICantBelieveIts_seco.safetensors)を差し替えてください。
+
+
+◆実行方法
+
+①以下の「----------------------------------------------」で区切られた３つの部分を
+  セルに貼り付けてそれぞれ順番に実行します。
+
+
+----------------------------------------------
+
+!pip install -q diffusers==0.20.0 transformers xformers git+https://github.com/huggingface/accelerate.git
+!pip install -q opencv-contrib-python
+!pip install -q controlnet_aux
+!pip install omegaconf
+
+# import
+from google.colab import files
+
+----------------------------------------------
+
+from PIL import Image
+import numpy as np
+
+from diffusers import EulerAncestralDiscreteScheduler
+
+
+import torch
+from diffusers import StableDiffusionPipeline
+
+pipe = StableDiffusionPipeline.from_single_file(
+    "/content/drive/MyDrive/icbinpICantBelieveIts_seco.safetensors", torch_dtype=torch.float16
+)
+
+pipe.scheduler = EulerAncestralDiscreteScheduler.from_config(pipe.scheduler.config)
+
+# パイプラインを直接GPUにロードする代わりに、enable_model_cpu_offload関数でCPUオフロードを有効にする
+pipe.enable_model_cpu_offload()
+
+# FlashAttention/xformersのアテンションレイヤーアクセラレーションを有効にする
+pipe.enable_xformers_memory_efficient_attention()
+
+----------------------------------------------
+
+prompt = "round design red automobile in a street, front quarter view, sunset, (((Canon EOS 5D Mark4))),masterpiece, best quality, extremely detailed"
+generator = torch.Generator(device="cpu").manual_seed(7334341)
+
+output = pipe(
+    prompt,
+    negative_prompt="sketch, painting, digital art",
+    guidance_scale=7.5,
+    generator=generator,
+    num_inference_steps=35,
+)
+
+output.images[0]
+
+----------------------------------------------
+
